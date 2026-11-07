@@ -110,9 +110,12 @@ class TestRefused:
         real = importlib.import_module
         monkeypatch.setattr(importlib, "import_module", lambda name, *a: imported.append(name) or real(name, *a))
 
+        refused_package = "darnit_not_installed_xyz"
         with pytest.raises(HandlerImportRefused):
-            resolve_module_path("darnit_not_installed_xyz.tools:run")
-        assert imported == []
+            resolve_module_path(f"{refused_package}.tools:run")
+
+        # Discovering installed plugins can import them before the refusal.
+        assert not any(name == refused_package or name.startswith(f"{refused_package}.") for name in imported)
 
 
 class TestNotFound:
